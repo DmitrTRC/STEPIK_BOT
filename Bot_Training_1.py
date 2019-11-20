@@ -11,15 +11,19 @@ bot = telebot.TeleBot(token)
 def echo(message):
     if message.text == '/start':
         bot.send_message(message.chat.id,
-                         'Это БОТ пока он мало ,что умеет но активно учится :) В основном он синоптик! но поди знай ... '
+                         'Это бот-погода. Поможет узнать погоду в любом городе. Какой город интересует?'
                          )
     elif message.text in ('привет', 'Hi', 'hi', 'Hi!', 'Привет!', 'привет!'):
         bot.reply_to(message, 'Привет, привет ' + message.from_user.first_name)
     elif message.text == 'Погода на сегодня':
         bot.reply_to(message, 'Сегодня - сам в окно посмотри, не написал еще ...')
+    elif message.text == 'Москва':
+        bot.reply_to(message, 'Сейчас отличная погода!')
+    elif message.text == 'Москва завтра':
+        bot.reply_to(message, 'Завтра еще лучше!')
 
     else:
-        bot.reply_to(message, 'Пока не понимаю , блин ...')
+        bot.reply_to(message, 'Я тебя не понял')
 
 
 bot.polling()
