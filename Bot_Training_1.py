@@ -1,40 +1,30 @@
 import telebot
 import requests
-
+from datetime import datetime
 import random
 from pprint import pprint
 import wikipedia as wiki
 
+wiki.set_lang("ru")
 token = '1035021917:AAF-3Fki6dWOpQyyTqBbxoFQAEAwYz6fTlk'
 
 bot = telebot.TeleBot(token)
 
-
-def weather_request(city='None'):
-    url = 'http://wttr.in/'
-
-    if city == 'moon':
-        url = url + 'moon' + '?QFT&lang=ru'
-
-    elif city:
-
-        url = url + city + '?format=2'
-    else:
-        url = url + '?format=2'
-
-    ans = requests.get(url)
-    return ans.text
-
-
-def get_wiki(phrase):
-    try:
-        return wiki.summary(phrase)
-    except:
-        return " Request not found"
+states = {}
 
 
 @bot.message_handler(func=lambda message: True)
-def echo(message):
+def supervisor(message):
+    user_id = message.from_user.id
+    current_state = states.get(user_id, 'main')
+    print('Current user : ', user_id, current_state)
+    if current_state == 'main':
+        main_handler(message)
+    elif current_state == 'weather_date':
+        weather_date_handler(message)
+
+
+def main_handler(message):
     if message.text == '/start':
         bot.send_message(message.chat.id,
                          'Это бот-погода. Поможет узнать погоду в любом городе. Какой город интересует?'
@@ -44,10 +34,10 @@ def echo(message):
     elif message.text.lower() in ('погода на сегодня', 'погода', 'какая погода', 'weather',
                                   'what the weather', 'скажи погоду'):
         bot.send_message(message.chat.id, message.from_user.first_name + ' , а погода сейчас : ' + weather_request())
-    elif message.text.lower() == 'москва':
+    elif message.text.lower().startswith('москва'):
         bot.reply_to(message, 'Сейчас отличная погода! ' + weather_request('Москва'))
-    elif message.text.lower().find('город') == 0:
-        weather_message = message.text.lower().replace('город', '')
+    elif message.text.lower().startswith('город '):
+        weather_message = message.text[5:]
         print(weather_message.strip())
         bot.send_message(message.chat.id,
                          message.from_user.first_name
@@ -64,6 +54,30 @@ def echo(message):
 
     else:
         bot.send_message(message.chat.id, 'Я тебя не понял')
+
+
+def weather_date_handler(message):
+    pass
+
+
+def weather_request(city='None'):
+    url = 'http://wttr.in/'
+
+    if city == 'moon':
+        url = url + 'moon' + '?QFT&lang=ru'
+    elif city:
+        url = url + city + '?format=2'
+    else:
+        url = url + '?format=2'
+    ans = requests.get(url)
+    return ans.text
+
+
+def get_wiki(phrase):
+    try:
+        return wiki.summary(phrase)
+    except:
+        return "Запрос не найден"
 
 
 bot.polling()
