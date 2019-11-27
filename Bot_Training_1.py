@@ -1,12 +1,16 @@
 import telebot
 import requests
 from datetime import datetime
-import random
-from pprint import pprint
 import wikipedia as wiki
+import configparser
 
 wiki.set_lang("ru")
-token = '1035021917:AAF-3Fki6dWOpQyyTqBbxoFQAEAwYz6fTlk'
+
+config = configparser.ConfigParser()
+config.read('bot.ini')
+token = config['DEFAULT']['token']
+
+
 
 bot = telebot.TeleBot(token)
 
