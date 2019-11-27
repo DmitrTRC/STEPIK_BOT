@@ -14,6 +14,16 @@ states = {}
 weather_states = {}
 
 
+def get_states():  # Debugging information printing
+    print('FSM States: ')
+    for key, val in states.items():
+        print(key, val)
+
+    print('City States :')
+    for key, val in weather_states.items():
+        print(key, val)
+
+
 def weather_request(city='None', days=0):
     url = 'http://wttr.in/'
 
@@ -40,7 +50,7 @@ def supervisor(message):
     user_id = message.from_user.id
     current_state = states.get(user_id, 'main')
     current_city = weather_states.get(user_id, '')
-    print('Dictionary state in Supervisor :', weather_states)
+    print('Dictionary state in Supervisor :', get_states())
     print('Current user : ', user_id, current_state)
     if current_state == 'main':
         main_handler(message)
@@ -69,17 +79,16 @@ def main_handler(message):
         bot.reply_to(message, 'Сейчас отличная погода! ' + weather_request('Москва'))
 
     elif message.text.lower().startswith('город '):
-        print(message.text[5:])
 
-        current_city = weather_states.get(message.from_user.id, message.text[6:])  # Writing City name to dictionary
+        current_city = message.text[6:]  # Writing City name to dictionary
 
         weather_states[message.from_user.id] = current_city
 
-        print('Dictionary state (inside main handler ) :', weather_states, current_city)
+        print('Dictionary state (inside main handler ) :', get_states())
 
         bot.send_message(message.chat.id, message.from_user.first_name
                          + ' , а погода сейчас в городе {}: '.format(message.text[6:].title()) +
-                         weather_request(message.text[6:])
+                         weather_request(current_city)
                          )
         bot.send_message(message.chat.id, message.from_user.first_name +
                          ' На сколько дней дать прогноз ( 1 / 2 / Выйти Q ?)')
@@ -107,18 +116,15 @@ def weather_date_handler(message, city):
     try:
 
         if message.text == '1':
-            print('Handler for tomorrow done!')
-            bot.send_message(message.from_user.id, ' Погода на завтра: ' + weather_request(city, days=1))
 
+            bot.send_message(message.from_user.id, ' Погода на завтра: ' + weather_request(city, days=1))
 
         elif message.text == '2':
             bot.send_message(message.from_user.id, ' Прогноз на 2 дня: ' + weather_request(city, days=2))
 
-
         elif message.text.lower() in ('q', 'exit', 'выход'):
 
             bot.send_message(message.from_user.id, ' Хорошего настроения ! ' + message.from_user.first_name)
-
 
         else:
             bot.send_message(message.from_user.id, ' Не понял ... повторите ввод!')
@@ -127,8 +133,12 @@ def weather_date_handler(message, city):
         bot.send_message(message.from_user.id, ' Не удалось обработать запрос! ')
 
     finally:
+
+        print('States on exit from weather handler :')
+
         states[message.from_user.id] = 'main'
-        weather_states[message.from_user.id] = ''
+        weather_states[message.from_user.id] = None
+        get_states()
 
 
 bot.polling()
