@@ -20,7 +20,7 @@ def weather_request(city='None', days=0):
     if city == 'moon':
         url = url + 'moon' + '?QFT&lang=ru'
     elif city:
-        url = url + city + '?' + str(days) + 'MQ'
+        url = url + city + '_' + str(days) + '?' + 'format=2'
     else:
         url = url + '?format=2'
     print('Sending weather request : ', url)
@@ -78,11 +78,11 @@ def main_handler(message):
         print('Dictionary state (inside main handler ) :', weather_states, current_city)
 
         bot.send_message(message.chat.id, message.from_user.first_name
-                         + ' , а погода сейчас в городе {}: '.format(message.text[:5].title()) +
+                         + ' , а погода сейчас в городе {}: '.format(message.text[6:].title()) +
                          weather_request(message.text[6:])
                          )
         bot.send_message(message.chat.id, message.from_user.first_name +
-                         ' На сколько дней дать прогноз ( 1 / 2 / Выйти Q ?')
+                         ' На сколько дней дать прогноз ( 1 / 2 / Выйти Q ?)')
         states[message.from_user.id] = 'weather_date'
 
     elif message.text.lower() in ('луна', 'moon', 'покажи луну', 'show moon'):
@@ -104,21 +104,31 @@ def moscow_handler(messasge):
 
 
 def weather_date_handler(message, city):
-    if message.text == '1':
-        print('Handler for tomorrow done!')
-        bot.send_message(message.from_user.id, ' Погода на завтра: ' + weather_request(city, days=1))
-        states[message.from_user.id] = 'main'
+    try:
 
-    elif message.text == '2':
-        bot.send_message(message.from_user.id, ' Прогноз на 2 дня: ' + weather_request(city, days=2))
-        states[message.from_user.id] = 'main'
+        if message.text == '1':
+            print('Handler for tomorrow done!')
+            bot.send_message(message.from_user.id, ' Погода на завтра: ' + weather_request(city, days=1))
 
-    elif message.text.lower() in ('q', 'exit', 'выход'):
 
-        bot.send_message(message.from_user.id, ' Хорошего настроения ! ' + message.from_user.first_name)
+        elif message.text == '2':
+            bot.send_message(message.from_user.id, ' Прогноз на 2 дня: ' + weather_request(city, days=2))
+
+
+        elif message.text.lower() in ('q', 'exit', 'выход'):
+
+            bot.send_message(message.from_user.id, ' Хорошего настроения ! ' + message.from_user.first_name)
+
+
+        else:
+            bot.send_message(message.from_user.id, ' Не понял ... повторите ввод!')
+
+    except:
+        bot.send_message(message.from_user.id, ' Не удалось обработать запрос! ')
+
+    finally:
         states[message.from_user.id] = 'main'
-    else:
-        bot.send_message(message.from_user.id, ' Не понял ... повторите ввод!')
+        weather_states[message.from_user.id] = ''
 
 
 bot.polling()
