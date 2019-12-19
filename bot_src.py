@@ -31,13 +31,22 @@ def pares_date(date_str):
 def frontier_handler(message):
     print(f'Write frontier handling starting... {message.from_user.id}')
     if message.from_user.id not in calls:  # Set to 0 User statistics if not found in calls
-        calls[message.from_user.id] = 0
+        calls[message.from_user.id] = {
+            'wiki': 0,
+            'weather': 0,
+            'moon': 0,
+        }
         bot.send_message(message.chat.id, 'Это бот-погода. Поможет узнать погоду в любом городе. /info - помощь ')
     else:
-        calls[message.from_user.id] += 1
+        try:
+            calls[message.from_user.id]['weather'] += 1
+        except KeyError:
+            print('User identification error')
+
         today = date.today()
         current_shown_dates[message.from_user.id] = today
-        bot.send_message(message.chat.id, 'Введите город и дату в предела 3 суток.')
+        bot.send_message(message.chat.id,
+                         'Введите город и дату в предела 3 суток. Или может Вы дадите другую комманду ?')
 
 
 @bot.message_handler(commands=['info'])
@@ -47,6 +56,11 @@ def info_handler(message):
 
 @bot.message_handler(commands=['wiki'])
 def wiki_handler(message):
+    try:
+        calls[message.from_user.id]['wiki'] += 1
+    except KeyError:
+        print('User identification error')
+
     bot.send_message(message.from_user.id, 'Ок! Я - Wiki Напиши мне свой запрос ...')
     bot.register_next_step_handler(message, wiki_response)
 
@@ -64,6 +78,11 @@ def wiki_response(message):
 
 @bot.message_handler(commands=['moon'])
 def moon_handler(message):
+    try:
+        calls[message.from_user.id]['moon'] += 1
+    except KeyError:
+        print('User identification error')
+
     url_moon = 'http://wttr.in/moon'
     bot.send_message(message.from_user.id,
                      requests.get(url_moon, params={'QFT': '', 'lang': 'ru'}).text)
@@ -83,8 +102,9 @@ def weather(message):
 
 @bot.message_handler(commands=['calls'])
 def calls_handle(message):
-    bot.send_message(message.from_user.id,
-                     message.from_user.first_name + ' ' + str(calls.get(message.from_user.id)))
+    report = (calls.get(message.from_user.id))
+    bot.send_message(message.from_user.id, f'{message.from_user.first_name} Погода {report["weather"]} '
+                                           f'Wiki {report["wiki"]} Луна {report["moon"]}')
 
 
 @bot.message_handler(content_types=['text'])
