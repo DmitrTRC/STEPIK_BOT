@@ -6,9 +6,12 @@ from weatherapi import *
 from Dispatcher import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
 from datetime import date, timedelta
+import wikipedia as wiki
 
 bot = telebot.TeleBot(bot_token)
 info_weather = CWeatherInfo()
+
+wiki.set_lang("ru")
 
 calls = {}  # User statistics
 current_shown_dates = {}  # Selected dates
@@ -40,6 +43,23 @@ def frontier_handler(message):
 @bot.message_handler(commands=['info'])
 def info_handler(message):
     bot.send_message(message.from_user.id, GREETING_MSG)
+
+
+@bot.message_handler(commands=['wiki'])
+def wiki_handler(message):
+    bot.send_message(message.from_user.id, 'Ок! Я - Wiki Напиши мне свой запрос ...')
+    bot.register_next_step_handler(message, wiki_response)
+
+
+def wiki_response(message):
+    try:
+        answer = wiki.summary(message.text)
+    except Exception:
+        print('Not Found')
+    else:
+        bot.send_message(message.from_user.id, answer)
+    finally:
+        bot.register_next_step_handler(message, frontier_handler)
 
 
 @bot.message_handler(commands=['moon'])
@@ -95,5 +115,5 @@ def weather_parser(message):
 
 
 if __name__ == '__main__':
-    # bot.skip_pending = True
+    bot.skip_pending = True
     bot.polling(none_stop=True)
