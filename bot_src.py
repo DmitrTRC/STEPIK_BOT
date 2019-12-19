@@ -33,7 +33,6 @@ def frontier_handler(message):
     else:
         calls[message.from_user.id] += 1
         today = date.today()
-        # cur_date = (today.year, today.month, today.day)
         current_shown_dates[message.from_user.id] = today
         bot.send_message(message.chat.id, 'Введите город и дату в предела 3 суток.')
 
