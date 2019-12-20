@@ -1,6 +1,7 @@
 import requests
 from aux_data import geo_token, weather_token
 import pyowm
+from datetime import datetime
 
 degree_sign = u'\N{DEGREE SIGN}'
 
@@ -49,11 +50,6 @@ class CWeatherInfo:
         self.OWM_TOKEN = weather_token
         self.owm = pyowm.OWM(self.OWM_TOKEN, language='RU')
 
-    def forecast(self, city, date):
-        obs = self.owm.daily_forecast()
-        weather = obs.get_weather_at(f'{date[1].year}-{date[1].month}-{date[1].day} 12:00:00+00')
-        return weather
-
     def get_detailed_report(self, weather):
         temperature = weather.get_temperature('celsius').get('temp')
         wind_speed = weather.get_wind()['speed']
@@ -65,6 +61,18 @@ class CWeatherInfo:
         weather.get_detailed_status().capitalize()
         return [temperature, wind_direction, wind_speed, weather.get_detailed_status().capitalize()]
 
+    def get_tomorrow(self, city):
+        '''
+        nextday = forecast.get_weather_at(next_day)
+        decoded_tomorrow = json.loads(nextday.to_JSON())
+        detailed_status_tomorrow = decoded_tomorrow['detailed_status']
+
+        strMsg = 'tomorrows weather for ' + city_name + ': ' + detailed_status_tomorrow.title() + 'temperatures range from ' + str(
+            nextday.get_temperature('celsius')['temp_min']) + 'degrees Celsius to ' + str(
+            nextday.get_temperature('celsius')['temp_max']) + 'degrees Celsius. Cloud cover will be ' + str(
+            decoded_tomorrow['clouds']) + 'percent'
+        '''
+
     def get_weather_list(self, city):
         try:
             obs_point = self.owm.three_hours_forecast(city)
@@ -75,12 +83,14 @@ class CWeatherInfo:
         else:
             return weather_list
 
-    def get_weather(self, city, date=None):
-        if date:
+    def get_weather(self, city, date_r=None):
+        if date_r:
             try:
-                obs_point = self.owm.three_hours_forecast(city)
-                weather = obs_point.get_weather_at(date)
-            except Exception:
+                print('Start Weather forecasting !')
+                obs_point = self.owm.three_hours_forecast('Moscow, RU')
+                weather = obs_point.get_weather_at(date_r)
+            except Exception as er:
+                print('Exception fault!!!', er)
                 return None
             else:
                 return weather

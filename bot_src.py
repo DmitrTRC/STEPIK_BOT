@@ -2,6 +2,7 @@ import telebot
 import re
 import datetime
 import requests
+from datetime import datetime
 from weatherapi import *
 from Dispatcher import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
@@ -99,8 +100,29 @@ def moon_handler(message):
                      requests.get(url_moon, params={'QFT': '', 'lang': 'ru'}).text)
 
 
+def weather_handler(message, city, date=None):
+    if not date:
+        report = info_weather.get_detailed_report(info_weather.get_weather(city))
+        base_text = f'Температура на сегодня в городе {city.capitalize()} {round(report[0])} {degree_sign}C;\n'
+        if not report[1]:
+            msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
+        else:
+            msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
+
+        bot.send_message(message.from_user.id, msg_text)
+    else:
+        report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
+        base_text = f'Температура на сегодня в городе {city.capitalize()} {date} {round(report[0])} {degree_sign}C;\n'
+        if not report[1]:
+            msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
+        else:
+            msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
+        bot.send_message(message.from_user.id, msg_text)
+    bot.register_next_step_handler(message, frontier_handler)
+
+
 @bot.message_handler(commands=['weather'])
-def weather(message):
+def local__weather(message):
     report = info_weather.get_detailed_report(info_weather.get_weather(LOCATION.city))
     base_text = f'Температура на сегодня в городе {LOCATION.city.capitalize()} {round(report[0])} {degree_sign}C;\n'
     if not report[1]:
@@ -121,9 +143,12 @@ def calls_handle(message):
 @bot.message_handler(content_types=['text'])
 def weather_parser(message):
     today = date.today()
+    now = datetime.now()
+
     msg_string = message.text.lower().split()
     if len(msg_string) == 1:
-        print('weather requests', msg_string[0])
+        print('weather requests', msg_string[0])  # Debug information
+        weather_handler(message, msg_string[0])
     elif len(msg_string) == 2:
         try:
             day, month = pares_date(msg_string[1])
@@ -140,7 +165,11 @@ def weather_parser(message):
                     bot.send_message(message.from_user.id, 'Неправильный формат даты ( в пределах 3-х суток )')
                 else:
                     current_shown_dates[message.from_user.id] = req_date  # Selected dates
-                    print('Weather request ', msg_string[0], req_date)
+                    print('Weather request ', msg_string[0], req_date)  # Debug information
+                    print(type(req_date))
+                    weather_handler(message, msg_string[0], datetime(req_date.year, req_date.month, req_date.day,
+                                                                     now.hour, now.minute))
+
     else:
         bot.send_message(message.from_user.id, 'Я тебя не понял !!!')
 
