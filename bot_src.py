@@ -1,8 +1,6 @@
 import telebot
 import re
 import datetime
-import requests
-from datetime import datetime
 from weatherapi import *
 from Dispatcher import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
@@ -17,10 +15,6 @@ wiki.set_lang("ru")
 
 calls = {}  # User statistics
 current_shown_dates = {}  # Selected dates
-
-task = CDispatcher({
-
-})  # Menu task handler@bot.message_handler(func=lambda message: True)
 
 
 def pares_date(date_str):
@@ -102,20 +96,16 @@ def moon_handler(message):
 
 @bot.message_handler(commands=['forecast'])
 def weather_tomorrow(message):
-    print('Forecast list starting...')
     report_buf = []
     report = info_weather.get_weather_list(CURRENT_CITY)
     print(CURRENT_CITY)
     for count, weather in enumerate(report):
-
         if count % 6 == 0:
             temp = weather.get_temperature(unit='celsius')['temp']
-
             date_stamp = weather.get_reference_time('iso').split()
             rep1 = date_stamp[0] + ' Температура: ' + str(round(temp)) + degree_sign + 'C'
             report_buf.append(rep1)
     bot.send_message(message.from_user.id, '\n'.join(report_buf))
-    # bot.register_next_step_handler(message, frontier_handler)
     bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ')
 
 
@@ -143,10 +133,10 @@ def weather_handler(message, city, date=None):
                 msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
 
             bot.send_message(message.from_user.id, msg_text, reply_markup=markup)
-            bot.register_next_step_handler(message, frontier_handler)
+        #   bot.register_next_step_handler(message, frontier_handler)
         else:
             report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
-            base_text = f'Температура на {date} в городе {city.capitalize() } {round(report[0]) } {degree_sign }C;\n'
+            base_text = f'Температура на {date} в городе {city.capitalize()} {round(report[0])} {degree_sign}C;\n'
             if not report[1]:
                 msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
             else:
