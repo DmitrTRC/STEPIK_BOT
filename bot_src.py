@@ -2,7 +2,6 @@ import telebot
 import re
 import datetime
 from weatherapi import *
-from Dispatcher import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
 from datetime import date, timedelta
 import wikipedia as wiki
@@ -208,4 +207,4 @@ def weather_parser(message):
 
 
 if __name__ == '__main__':
-    bot.polling()
+    bot.polling(none_stop=True)
