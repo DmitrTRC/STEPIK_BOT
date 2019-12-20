@@ -25,8 +25,8 @@ def pares_date(date_str):
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
     print(f'Write frontier handling starting... {message.from_user.id}')  # Debug information
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    button1 = types.KeyboardButton('/start')
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
+    button1 = types.KeyboardButton('/weather')
     button2 = types.KeyboardButton('/info')
     button3 = types.KeyboardButton('/wiki')
     button4 = types.KeyboardButton('/calls')
@@ -44,14 +44,15 @@ def frontier_handler(message):
                          reply_markup=markup)
     else:
         try:
-            calls[message.from_user.id]['weather'] += 1
+            calls[message.from_user.id]['погода'] += 1
         except KeyError:
             print('User identification error')
 
         today = date.today()
         current_shown_dates[message.from_user.id] = today
         bot.send_message(message.chat.id,
-                         'Введите город и дату в предела 3 суток. Или может Вы дадите другую комманду ?')
+                         'Введите город и дату в предела 3 суток. Или может Вы дадите другую комманду ?',
+                         reply_markup=markup)
 
 
 @bot.message_handler(commands=['info'])
@@ -78,7 +79,7 @@ def wiki_response(message):
     else:
         bot.send_message(message.from_user.id, answer)
     finally:
-        bot.register_next_step_handler(message, frontier_handler)
+        frontier_handler(message)
 
 
 @bot.message_handler(commands=['moon'])
@@ -91,9 +92,10 @@ def moon_handler(message):
     url_moon = 'http://wttr.in/moon'
     bot.send_message(message.from_user.id,
                      requests.get(url_moon, params={'QFT': '', 'lang': 'ru'}).text)
+    frontier_handler(message)
 
 
-@bot.message_handler(commands=['forecast'])
+@bot.message_handler(commands=['ПРОГНОЗ'])
 def weather_tomorrow(message):
     report_buf = []
     report = info_weather.get_weather_list(CURRENT_CITY)
@@ -105,14 +107,16 @@ def weather_tomorrow(message):
             rep1 = date_stamp[0] + ' Температура: ' + str(round(temp)) + degree_sign + 'C'
             report_buf.append(rep1)
     bot.send_message(message.from_user.id, '\n'.join(report_buf))
-    bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ')
+    reset_markup = types.ReplyKeyboardRemove()
+    bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ', reply_markup=reset_markup)
+    frontier_handler(message)
 
 
 def weather_handler(message, city, date=None):
     global CURRENT_CITY
     CURRENT_CITY = city
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, selective=True, row_width=1)
-    button1 = types.KeyboardButton('/forecast')
+    button1 = types.KeyboardButton('/ПРОГНОЗ')
     markup.add(button1)
     try:
         if date:
@@ -167,6 +171,7 @@ def calls_handle(message):
     report = (calls.get(message.from_user.id))
     bot.send_message(message.from_user.id, f'{message.from_user.first_name} Погода {report["weather"]} '
                                            f'Wiki {report["wiki"]} Луна {report["moon"]}')
+    frontier_handler(message)
 
 
 @bot.message_handler(content_types=['text'])
