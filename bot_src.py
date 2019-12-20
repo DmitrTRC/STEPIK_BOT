@@ -7,6 +7,7 @@ from Dispatcher import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
 from datetime import date, timedelta
 import wikipedia as wiki
+from telebot import types
 
 bot = telebot.TeleBot(bot_token)
 info_weather = CWeatherInfo()
@@ -29,14 +30,24 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
-    print(f'Write frontier handling starting... {message.from_user.id}')
+    print(f'Write frontier handling starting... {message.from_user.id}')  # Debug information
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    button1 = types.KeyboardButton('/start')
+    button2 = types.KeyboardButton('/info')
+    button3 = types.KeyboardButton('/wiki')
+    button4 = types.KeyboardButton('/calls')
+
+    markup.add(button1, button2)
+    markup.add(button3, button4)
+
     if message.from_user.id not in calls:  # Set to 0 User statistics if not found in calls
         calls[message.from_user.id] = {
             'wiki': 0,
             'weather': 0,
             'moon': 0,
         }
-        bot.send_message(message.chat.id, 'Это бот-погода. Поможет узнать погоду в любом городе. /info - помощь ')
+        bot.send_message(message.chat.id, 'Это бот-погода. Поможет узнать погоду в любом городе. /info - помощь ',
+                         reply_markup=markup)
     else:
         try:
             calls[message.from_user.id]['weather'] += 1

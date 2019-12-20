@@ -65,11 +65,29 @@ class CWeatherInfo:
         weather.get_detailed_status().capitalize()
         return [temperature, wind_direction, wind_speed, weather.get_detailed_status().capitalize()]
 
-    def get_weather(self, city, days=0):
+    def get_weather_list(self, city):
+        try:
+            obs_point = self.owm.three_hours_forecast(city)
+            forecast = obs_point.get_forecast()
+            weather_list = forecast.get_weathers()
+        except Exception:
+            return None
+        else:
+            return weather_list
+
+    def get_weather(self, city, date=None):
+        if date:
+            try:
+                obs_point = self.owm.three_hours_forecast(city)
+                weather = obs_point.get_weather_at(date)
+            except Exception:
+                return None
+            else:
+                return weather
         try:
             obs_point = self.owm.weather_at_place(city)
             weather = obs_point.get_weather()
-        except:
+        except Exception:
             return None
         else:
             return weather
