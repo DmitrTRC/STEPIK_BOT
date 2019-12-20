@@ -12,7 +12,7 @@ from telebot import types
 
 bot = telebot.TeleBot(bot_token)
 info_weather = CWeatherInfo()
-
+CURRENT_CITY = None
 wiki.set_lang("ru")
 
 calls = {}  # User statistics
@@ -100,25 +100,59 @@ def moon_handler(message):
                      requests.get(url_moon, params={'QFT': '', 'lang': 'ru'}).text)
 
 
-def weather_handler(message, city, date=None):
-    if not date:
-        report = info_weather.get_detailed_report(info_weather.get_weather(city))
-        base_text = f'Температура на сегодня в городе {city.capitalize()} {round(report[0])} {degree_sign}C;\n'
-        if not report[1]:
-            msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
-        else:
-            msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
+@bot.message_handler(commands=['forecast'])
+def weather_tomorrow(message):
+    print('Forecast list starting...')
+    report_buf = []
+    report = info_weather.get_weather_list(CURRENT_CITY)
+    print(CURRENT_CITY)
+    for count, weather in enumerate(report):
 
-        bot.send_message(message.from_user.id, msg_text)
-    else:
-        report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
-        base_text = f'Температура на сегодня в городе {city.capitalize()} {date} {round(report[0])} {degree_sign}C;\n'
-        if not report[1]:
-            msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
+        if count % 6 == 0:
+            temp = weather.get_temperature(unit='celsius')['temp']
+
+            date_stamp = weather.get_reference_time('iso').split()
+            rep1 = date_stamp[0] + ' Температура: ' + str(round(temp)) + degree_sign + 'C'
+            report_buf.append(rep1)
+    bot.send_message(message.from_user.id, '\n'.join(report_buf))
+    # bot.register_next_step_handler(message, frontier_handler)
+    bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ')
+
+
+def weather_handler(message, city, date=None):
+    global CURRENT_CITY
+    CURRENT_CITY = city
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, selective=True, row_width=1)
+    button1 = types.KeyboardButton('/forecast')
+    markup.add(button1)
+    try:
+        if date:
+            report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
         else:
-            msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
-        bot.send_message(message.from_user.id, msg_text)
-    bot.register_next_step_handler(message, frontier_handler)
+            report = info_weather.get_detailed_report(info_weather.get_weather(city))
+    except Exception:
+        bot.send_message(message.from_user.id, 'Запрашиваемый город не найден')
+
+    else:
+        if not date:
+            report = info_weather.get_detailed_report(info_weather.get_weather(city))
+            base_text = f'Температура на сегодня в городе {city.capitalize()} {round(report[0])} {degree_sign}C;\n'
+            if not report[1]:
+                msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
+            else:
+                msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
+
+            bot.send_message(message.from_user.id, msg_text, reply_markup=markup)
+            bot.register_next_step_handler(message, frontier_handler)
+        else:
+            report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
+            base_text = f'Температура на {date} в городе {city.capitalize() } {round(report[0]) } {degree_sign }C;\n'
+            if not report[1]:
+                msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
+            else:
+                msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
+            bot.send_message(message.from_user.id, msg_text, reply_markup=markup)
+        # bot.register_next_step_handler(message, frontier_handler)
 
 
 @bot.message_handler(commands=['weather'])
@@ -135,6 +169,12 @@ def local__weather(message):
 
 @bot.message_handler(commands=['calls'])
 def calls_handle(message):
+    if message.from_user.id not in calls:  # Set to 0 User statistics in an emergency need to be REFACTORED!!!!
+        calls[message.from_user.id] = {
+            'wiki': 0,
+            'weather': 0,
+            'moon': 0,
+        }
     report = (calls.get(message.from_user.id))
     bot.send_message(message.from_user.id, f'{message.from_user.first_name} Погода {report["weather"]} '
                                            f'Wiki {report["wiki"]} Луна {report["moon"]}')
@@ -156,7 +196,10 @@ def weather_parser(message):
             bot.send_message(message.from_user.id, 'Неправильный формат даты ... ')
         else:
             try:
-                req_date = date(today.year, month, day)
+                if today.month > month:  # In case of 'Next year'
+                    req_date = date(today.year + 1, month, day)
+                else:
+                    req_date = date(today.year, month, day)
             except ValueError:
                 bot.send_message(message.from_user.id, 'Неправильный формат даты ... ')
             else:
@@ -175,5 +218,4 @@ def weather_parser(message):
 
 
 if __name__ == '__main__':
-    bot.skip_pending = True
-    bot.polling(none_stop=True)
+    bot.polling()

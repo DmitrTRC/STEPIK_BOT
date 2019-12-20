@@ -61,18 +61,6 @@ class CWeatherInfo:
         weather.get_detailed_status().capitalize()
         return [temperature, wind_direction, wind_speed, weather.get_detailed_status().capitalize()]
 
-    def get_tomorrow(self, city):
-        '''
-        nextday = forecast.get_weather_at(next_day)
-        decoded_tomorrow = json.loads(nextday.to_JSON())
-        detailed_status_tomorrow = decoded_tomorrow['detailed_status']
-
-        strMsg = 'tomorrows weather for ' + city_name + ': ' + detailed_status_tomorrow.title() + 'temperatures range from ' + str(
-            nextday.get_temperature('celsius')['temp_min']) + 'degrees Celsius to ' + str(
-            nextday.get_temperature('celsius')['temp_max']) + 'degrees Celsius. Cloud cover will be ' + str(
-            decoded_tomorrow['clouds']) + 'percent'
-        '''
-
     def get_weather_list(self, city):
         try:
             obs_point = self.owm.three_hours_forecast(city)
@@ -104,3 +92,4 @@ class CWeatherInfo:
 
 
 LOCATION = CLocationInfo(True)
+
