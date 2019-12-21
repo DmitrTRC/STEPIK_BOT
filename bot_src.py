@@ -6,10 +6,23 @@ from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
 from datetime import date, timedelta
 import wikipedia as wiki
 from telebot import types
+import logging
+
+logger = telebot.logger
+formatter = logging.Formatter('[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+                              '%m-%d %H:%M:%S')
+ch = logging.FileHandler('LOG.txt')
+logger.addHandler(ch)
+logger.setLevel(logging.INFO)  # or use logging.INFO
+ch.setFormatter(formatter)
 
 bot = telebot.TeleBot(bot_token)
+
 info_weather = CWeatherInfo()
 CURRENT_CITY = None
+user_defined = {
+    # User settings
+}
 wiki.set_lang("ru")
 
 calls = {}  # User statistics
@@ -26,7 +39,7 @@ def pares_date(date_str):
 def frontier_handler(message):
     print(f'Write frontier handling starting... {message.from_user.id}')  # Debug information
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
-    button1 = types.KeyboardButton('/weather')
+    button1 = types.KeyboardButton('/Moscow')
     button2 = types.KeyboardButton('/info')
     button3 = types.KeyboardButton('/wiki')
     button4 = types.KeyboardButton('/calls')
@@ -40,18 +53,14 @@ def frontier_handler(message):
             'weather': 0,
             'moon': 0,
         }
-        bot.send_message(message.chat.id, 'Это бот-погода. Поможет узнать погоду в любом городе. /info - помощь ',
+        bot.send_message(message.chat.id, 'Я бот-погода. Могу узнать погоду в любом городе. /info - помощь ',
                          reply_markup=markup)
     else:
-        try:
-            calls[message.from_user.id]['погода'] += 1
-        except KeyError:
-            print('User identification error')
 
         today = date.today()
         current_shown_dates[message.from_user.id] = today
         bot.send_message(message.chat.id,
-                         'Введите город и дату в предела 3 суток. Или может Вы дадите другую комманду ?',
+                         'Введите город и дату (дд,мм) в пределах 3 суток. Или может Вы дадите другую комманду ?',
                          reply_markup=markup)
 
 
@@ -65,7 +74,7 @@ def wiki_handler(message):
     try:
         calls[message.from_user.id]['wiki'] += 1
     except KeyError:
-        print('User identification error')
+        print('User identification error in wiki')
 
     bot.send_message(message.from_user.id, 'Ок! Я - Wiki Напиши мне свой запрос ...')
     bot.register_next_step_handler(message, wiki_response)
@@ -87,7 +96,7 @@ def moon_handler(message):
     try:
         calls[message.from_user.id]['moon'] += 1
     except KeyError:
-        print('User identification error')
+        print('User identification error in moon')
 
     url_moon = 'http://wttr.in/moon'
     bot.send_message(message.from_user.id,
@@ -98,23 +107,29 @@ def moon_handler(message):
 @bot.message_handler(commands=['ПРОГНОЗ'])
 def weather_tomorrow(message):
     report_buf = []
-    report = info_weather.get_weather_list(CURRENT_CITY)
     print(CURRENT_CITY)
-    for count, weather in enumerate(report):
-        if count % 6 == 0:
-            temp = weather.get_temperature(unit='celsius')['temp']
-            date_stamp = weather.get_reference_time('iso').split()
-            rep1 = date_stamp[0] + ' Температура: ' + str(round(temp)) + degree_sign + 'C'
-            report_buf.append(rep1)
-    bot.send_message(message.from_user.id, '\n'.join(report_buf))
-    reset_markup = types.ReplyKeyboardRemove()
-    bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ', reply_markup=reset_markup)
+    if report := info_weather.get_weather_list(CURRENT_CITY):
+        for count, weather in enumerate(report):
+            if count % 6 == 0:
+                temp = weather.get_temperature(unit='celsius')['temp']
+                date_stamp = weather.get_reference_time('iso').split()
+                rep1 = date_stamp[0] + ' Температура: ' + str(round(temp)) + degree_sign + 'C'
+                report_buf.append(rep1)
+        bot.send_message(message.from_user.id, '\n'.join(report_buf))
+        reset_markup = types.ReplyKeyboardRemove()
+        bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ', reply_markup=reset_markup)
+    else:
+        bot.send_message(message.from_user.id, 'К сожалению для Вашего местоположения прогноз не доступен! ')
     frontier_handler(message)
 
 
 def weather_handler(message, city, date=None):
     global CURRENT_CITY
     CURRENT_CITY = city
+    try:
+        calls[message.from_user.id]['weather'] += 1
+    except KeyError:
+        print('User identification error in weather')
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, selective=True, row_width=1)
     button1 = types.KeyboardButton('/ПРОГНОЗ')
     markup.add(button1)
@@ -125,7 +140,7 @@ def weather_handler(message, city, date=None):
             report = info_weather.get_detailed_report(info_weather.get_weather(city))
     except Exception:
         bot.send_message(message.from_user.id, 'Запрашиваемый город не найден')
-
+        frontier_handler(message)
     else:
         if not date:
             report = info_weather.get_detailed_report(info_weather.get_weather(city))
@@ -136,8 +151,9 @@ def weather_handler(message, city, date=None):
                 msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
 
             bot.send_message(message.from_user.id, msg_text, reply_markup=markup)
+
         #   bot.register_next_step_handler(message, frontier_handler)
-        else:
+        else:  # Very same code / needs to be refactored next
             report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
             base_text = f'Температура на {date} в городе {city.capitalize()} {round(report[0])} {degree_sign}C;\n'
             if not report[1]:
@@ -148,16 +164,24 @@ def weather_handler(message, city, date=None):
         # bot.register_next_step_handler(message, frontier_handler)
 
 
-@bot.message_handler(commands=['weather'])
+# This feature will change to automatic city recognize
+@bot.message_handler(commands=['Moscow'])
 def local__weather(message):
-    report = info_weather.get_detailed_report(info_weather.get_weather(LOCATION.city))
-    base_text = f'Температура на сегодня в городе {LOCATION.city.capitalize()} {round(report[0])} {degree_sign}C;\n'
+    try:
+        calls[message.from_user.id]['weather'] += 1
+    except KeyError:
+        print('User identification  Key error in weather fixed function')
+
+    city = 'Москва'
+    report = info_weather.get_detailed_report(info_weather.get_weather(city))
+    base_text = f'Температура на сегодня в городе {city.capitalize()} {round(report[0])} {degree_sign}C;\n'
     if not report[1]:
         msg_text = base_text + f'Скорость ветра {report[2]} м/с;\n {report[3]}.'
     else:
         msg_text = base_text + f'{report[1]}, {report[2]} м/с;\n {report[3]}.'
 
     bot.send_message(message.from_user.id, msg_text)
+    frontier_handler(message)
 
 
 @bot.message_handler(commands=['calls'])
