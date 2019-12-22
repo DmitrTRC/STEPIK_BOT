@@ -53,7 +53,7 @@ def frontier_handler(message):
             'weather': 0,
             'moon': 0,
         }
-        bot.send_message(message.chat.id, 'Я бот-погода. Могу узнать погоду в любом городе. /info - помощь ',
+        bot.send_message(message.chat.id, 'Это бот-погода. Поможет узнать погоду в любом городе. /info - помощь ',
                          reply_markup=markup)
     else:
 
