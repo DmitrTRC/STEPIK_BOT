@@ -37,7 +37,8 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
-    print(f'Write frontier handling starting... {message.from_user.id}')  # Debug information
+    print(
+        f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
     button1 = types.KeyboardButton('/Moscow')
     button2 = types.KeyboardButton('/info')
