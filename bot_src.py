@@ -41,8 +41,8 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
-    if IS_HEROKU:
-        bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
+    #if IS_HEROKU:
+       # bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
 
     print(
         f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
