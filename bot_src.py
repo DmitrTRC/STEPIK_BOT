@@ -29,7 +29,7 @@ wiki.set_lang("ru")
 calls = {}  # User statistics
 current_shown_dates = {}  # Selected dates
 
-HEROKU = os.environ.get('HEROKU', False)
+IS_HEROKU = os.environ.get('HEROKU', False)
 MY_ID = 641480282
 
 
@@ -41,7 +41,7 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
-    if HEROKU:
+    if IS_HEROKU:
         bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
 
     print(
