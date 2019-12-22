@@ -1,0 +1,6 @@
+pyTelegramBotApi
+pyowm
+wikipedia
+
+
+

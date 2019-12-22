@@ -1,8 +1,10 @@
-bot_token = '1035021917:AAF-3Fki6dWOpQyyTqBbxoFQAEAwYz6fTlk'
+import os
 
-weather_token = 'dc30ade0b2d0f49bc3d9fae7129f8668'
+bot_token = os.environ["TELEGRAM_TOKEN"]
 
-geo_token = '66198742f10828e592a6d81495c27c24'
+weather_token = os.environ["OWM_TOKEN"]
+
+geo_token = os.environ["GEO_TOKEN"]
 
 GREETING_MSG = '''Приветствую тебя новый пользователь погодного ботика!,
                      тебе доступны следующие команды:

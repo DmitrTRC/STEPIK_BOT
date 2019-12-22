@@ -1,5 +1,6 @@
 import telebot
 import re
+import os
 import datetime
 from weatherapi import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
@@ -28,6 +29,9 @@ wiki.set_lang("ru")
 calls = {}  # User statistics
 current_shown_dates = {}  # Selected dates
 
+HEROKU = os.environ.get('HEROKU', False)
+MY_ID = 641480282
+
 
 def pares_date(date_str):
     ret_str = filter(None, re.split("[, /.\-!?:]+", date_str))
@@ -37,6 +41,9 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
+    if HEROKU:
+        bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
+
     print(
         f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
