@@ -48,10 +48,10 @@ def frontier_handler(message):
     print(
         f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
-    button1 = types.KeyboardButton('/Moscow')
-    button2 = types.KeyboardButton('/info')
-    button3 = types.KeyboardButton('/wiki')
-    button4 = types.KeyboardButton('/calls')
+    button1 = types.KeyboardButton('Moscow')
+    button2 = types.KeyboardButton('info')
+    button3 = types.KeyboardButton('wiki')
+    button4 = types.KeyboardButton('calls')
 
     markup.add(button1, button2)
     markup.add(button3, button4)
@@ -73,12 +73,12 @@ def frontier_handler(message):
                          reply_markup=markup)
 
 
-@bot.message_handler(commands=['info'])
+@bot.message_handler(func=lambda message: message.text == 'info')
 def info_handler(message):
     bot.send_message(message.from_user.id, GREETING_MSG)
 
 
-@bot.message_handler(commands=['wiki'])
+@bot.message_handler(func=lambda message: message.text == 'wiki')
 def wiki_handler(message):
     try:
         calls[message.from_user.id]['wiki'] += 1
@@ -147,7 +147,7 @@ def weather_handler(message, city, date=None):
             report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
         else:
             report = info_weather.get_detailed_report(info_weather.get_weather(city))
-    except Exception as er :
+    except Exception as er:
         bot.send_message(message.from_user.id, 'Что то пошло не так...')
         frontier_handler(message)
     else:
@@ -174,7 +174,7 @@ def weather_handler(message, city, date=None):
 
 
 # This feature will change to automatic city recognize
-@bot.message_handler(commands=['Moscow'])
+@bot.message_handler(func=lambda message: message.text == 'Moscow')
 def local__weather(message):
     try:
         calls[message.from_user.id]['weather'] += 1
@@ -193,7 +193,7 @@ def local__weather(message):
     frontier_handler(message)
 
 
-@bot.message_handler(commands=['calls'])
+@bot.message_handler(func=lambda message: message.text == 'calls')
 def calls_handle(message):
     if message.from_user.id not in calls:  # Set to 0 User statistics in an emergency need to be REFACTORED!!!!
         calls[message.from_user.id] = {
