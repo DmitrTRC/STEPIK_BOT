@@ -75,7 +75,7 @@ class CWeatherInfo:
         if date_r:
             try:
                 print('Start Weather forecasting !')
-                obs_point = self.owm.three_hours_forecast('Moscow, RU')
+                obs_point = self.owm.three_hours_forecast(city)
                 weather = obs_point.get_weather_at(date_r)
             except Exception as er:
                 print('Exception fault!!!', er)

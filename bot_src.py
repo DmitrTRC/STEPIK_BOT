@@ -41,8 +41,9 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
-    #if IS_HEROKU:
-       # bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
+    if IS_HEROKU:
+        print('HEROKU Message SENT')
+        bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
 
     print(
         f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
@@ -146,8 +147,8 @@ def weather_handler(message, city, date=None):
             report = info_weather.get_detailed_report(info_weather.get_weather(city, date))
         else:
             report = info_weather.get_detailed_report(info_weather.get_weather(city))
-    except Exception:
-        bot.send_message(message.from_user.id, 'Запрашиваемый город не найден')
+    except Exception as er :
+        bot.send_message(message.from_user.id, 'Что то пошло не так...')
         frontier_handler(message)
     else:
         if not date:
@@ -235,7 +236,6 @@ def weather_parser(message):
                 else:
                     current_shown_dates[message.from_user.id] = req_date  # Selected dates
                     print('Weather request ', msg_string[0], req_date)  # Debug information
-                    print(type(req_date))
                     weather_handler(message, msg_string[0], datetime(req_date.year, req_date.month, req_date.day,
                                                                      now.hour, now.minute))
 
