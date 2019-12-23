@@ -2,7 +2,7 @@ import os
 
 bot_token = os.environ["TELEGRAM_TOKEN"]
 
-weather_token = 'dc30ade0b2d0f49bc3d9fae7129f8668'#os.environ["OWM_TOKEN"]
+weather_token = os.environ["OWM_TOKEN"]
 
 geo_token = os.environ["GEO_TOKEN"]
 
