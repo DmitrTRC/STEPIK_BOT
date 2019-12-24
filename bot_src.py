@@ -1,6 +1,5 @@
 import telebot
 import re
-import os
 import datetime
 from weatherapi import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
@@ -30,7 +29,6 @@ calls = {}  # User statistics
 current_shown_dates = {}  # Selected dates
 
 IS_HEROKU = os.environ.get('HEROKU', False)
-MY_ID = 641480282
 
 
 def pares_date(date_str):
@@ -42,9 +40,7 @@ def pares_date(date_str):
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
     if IS_HEROKU:
-        print('HEROKU Message SENT')
-        bot.send_message(message.from_user.MY_ID, 'HEROKU BOT APP ACTIVE')
-
+        bot.send_message(OWN_ID, 'HEROKU BOT APP ACTIVE')
     print(
         f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
@@ -57,6 +53,9 @@ def frontier_handler(message):
     markup.add(button3, button4)
 
     if message.from_user.id not in calls:  # Set to 0 User statistics if not found in calls
+        if message.from_user.id != OWN_ID:
+            bot.send_message(OWN_ID,
+                             f'WEATHER BOT: NEW USER LOGIN {message.from_user.id=} {message.from_user.first_name}')
         calls[message.from_user.id] = {
             'wiki': 0,
             'weather': 0,
@@ -126,7 +125,7 @@ def weather_tomorrow(message):
                 report_buf.append(rep1)
         bot.send_message(message.from_user.id, '\n'.join(report_buf))
         reset_markup = types.ReplyKeyboardRemove()
-        bot.send_message(message.from_user.id, 'Не полагай тесть только на прогноз! :) ', reply_markup=reset_markup)
+        bot.send_message(message.from_user.id, 'Не полагайтесь только на прогноз! :) ', reply_markup=reset_markup)
     else:
         bot.send_message(message.from_user.id, 'К сожалению для Вашего местоположения прогноз не доступен! ')
     frontier_handler(message)
