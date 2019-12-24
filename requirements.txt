@@ -1,6 +1,7 @@
 pyTelegramBotApi
 pyowm
 wikipedia
+google-cloud-storage
 
 
 

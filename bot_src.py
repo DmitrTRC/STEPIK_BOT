@@ -7,6 +7,27 @@ from datetime import date, timedelta
 import wikipedia as wiki
 from telebot import types
 import logging
+from google.cloud import storage
+import google.oauth2.credentials
+from google.auth import app_engine
+
+credentials = app_engine.Credentials()
+
+try:
+    credentials = app_engine.Credentials()
+    #credentials = google.oauth2.credentials.Credentials(
+     #   os.environ['HDRIVE_GOOGLE_JSON_KEY'])
+except Exception as er:
+    print(f'Error to get Google Key access : {er=}')
+else:
+    print(f'Google access granted! {credentials=}')
+try:
+    client = storage.Client('spain-weather-bot', credentials=credentials)
+    bucket = client.get_bucket('spain_bot')
+    blob = bucket.blob('my-test-file.txt')
+    blob.upload_from_string('this is test content!')
+except  Exception as er:
+    print(f'Goggle storage error : {er=} ')
 
 logger = telebot.logger
 formatter = logging.Formatter('[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
