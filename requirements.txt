@@ -2,6 +2,10 @@ pyTelegramBotApi
 pyowm
 wikipedia
 google-cloud-storage
+redis
+enum
+
+
 
 
 

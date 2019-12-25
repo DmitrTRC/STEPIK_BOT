@@ -9,10 +9,8 @@ import wikipedia as wiki
 from telebot import types
 import logging
 from google.cloud import storage
-import google.oauth2.credentials
 from google.oauth2 import service_account
-
-import pprint
+from db_worker import *
 
 try:
 
@@ -71,8 +69,10 @@ def pares_date(date_str):
 
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
-    if IS_HEROKU:
-        bot.send_message(OWN_ID, 'HEROKU BOT APP ACTIVE')
+    if message.from_user.id in ADMINS:
+        if IS_HEROKU:
+            bot.send_message(OWN_ID, 'HEROKU INSTANCE UP!' + str(os.environ.get('REDIS_URL')))
+
     print(
         f'Write frontier handling starting... {message.from_user.id} {message.from_user.first_name}')  # Debug information
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
