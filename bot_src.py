@@ -11,7 +11,7 @@ import logging
 from google.cloud import storage
 import google.oauth2.credentials
 from google.oauth2 import service_account
-import cloudstorage as gcs
+
 import pprint
 
 try:
