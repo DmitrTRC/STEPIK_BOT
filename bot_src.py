@@ -1,5 +1,6 @@
 import telebot
 import re
+import json
 import datetime
 from weatherapi import *
 from aux_data import *  # Telegram API KEY, GEO API, , Weather API , extra data
@@ -10,68 +11,32 @@ import logging
 from google.cloud import storage
 import google.oauth2.credentials
 from google.oauth2 import service_account
+import cloudstorage as gcs
 import pprint
 
-
-def list_buckets(client):
-    """Lists all buckets."""
-
-    storage_client = client
-    buckets = storage_client.list_buckets()
-
-    for bucket in buckets:
-        print(bucket.name)
-
-
-def bucket_metadata(bucket_name, client):
-    """Prints out a bucket's metadata."""
-    # bucket_name = 'your-bucket-name'
-
-    storage_client = client
-    bucket = storage_client.get_bucket(bucket_name)
-
-    print("ID: {}".format(bucket.id))
-    print("Name: {}".format(bucket.name))
-    print("Storage Class: {}".format(bucket.storage_class))
-    print("Location: {}".format(bucket.location))
-    print("Location Type: {}".format(bucket.location_type))
-    print("Cors: {}".format(bucket.cors))
-    print(
-        "Default Event Based Hold: {}".format(bucket.default_event_based_hold)
-    )
-    print("Default KMS Key Name: {}".format(bucket.default_kms_key_name))
-    print("Metageneration: {}".format(bucket.metageneration))
-    print(
-        "Retention Effective Time: {}".format(
-            bucket.retention_policy_effective_time
-        )
-    )
-    print("Retention Period: {}".format(bucket.retention_period))
-    print("Retention Policy Locked: {}".format(bucket.retention_policy_locked))
-    print("Requester Pays: {}".format(bucket.requester_pays))
-    print("Self Link: {}".format(bucket.self_link))
-    print("Time Created: {}".format(bucket.time_created))
-    print("Versioning Enabled: {}".format(bucket.versioning_enabled))
-    print("Labels:")
-    pprint.pprint(bucket.labels)
-
-
-credentials = None
 try:
-    credentials = service_account.Credentials.from_service_account_file('hdinfo')
 
+    credentials_raw = os.environ.get('HDRIVE_GOOGLE_JSON_KEY')
+    service_account_info = json.loads(credentials_raw)
+    project = service_account_info.get('project_id')
+    credentials = service_account.Credentials.from_service_account_info(service_account_info)
 except Exception as er:
     print(f'Error to get Google Key access : {er=}')
 else:
     print(f'Google access granted! {credentials=}')
 
 try:
-    client = storage.Client()
-    list_buckets(client)
-    # bucket_metadata('dmheroku', client)
-    #bucket = client.get_bucket('dmheroku')
-    #blob = bucket.blob('/spain_bot/testfile.txt')
-    #blob.upload_from_string('this is test content!')
+    drive_client = storage.Client(credentials=credentials, project=project)
+
+except Exception as er:
+    print(f'Error to get Google Key access : {er=}')
+else:
+    print(f'Google access granted! {drive_client=}')
+
+try:
+    bucket = 'dmheroku'
+    bucket_handler = drive_client.get_bucket(bucket)
+
 except  Exception as er:
     print(f'Goggle storage error : {er=} ')
 
