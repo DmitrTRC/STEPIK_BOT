@@ -42,7 +42,9 @@ def pares_date(date_str):
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
     if message.from_user.id in ADMINS:
+        print ( 'Admin USER-GROUP detected ')
         if IS_HEROKU:
+            print ( ' HEROKU Environment detected.')
             bot.send_message(OWN_ID, 'HEROKU INSTANCE UP!' + str(os.environ.get('REDIS_URL')))
 
     print(
