@@ -1,7 +1,5 @@
 import os
 
-OWN_ID = os.environ["STAFF_ID"]
-
 bot_token = os.environ["TELEGRAM_TOKEN"]
 
 weather_token = os.environ["OWM_TOKEN"]

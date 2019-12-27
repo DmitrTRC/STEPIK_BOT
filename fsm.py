@@ -1,7 +1,7 @@
-from enum import Enum
+from fast_enum import FastEnum
 
 
-class States(Enum):
+class States(FastEnum):
     S_START = '0'
     S_NEW_USER = '1'
     S_CURRENT_WEATHER = '2'

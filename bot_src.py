@@ -9,6 +9,11 @@ import wikipedia as wiki
 from telebot import types
 import logging
 from db_worker import *
+import sentry_sdk
+
+sentry_sdk.init("https://28ddf6c3e8c148a78c69a356e9d1db1a@sentry.io/1867225")
+
+
 
 logger = telebot.logger
 formatter = logging.Formatter('[%(asctime)s] %(thread)d {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
@@ -30,7 +35,7 @@ wiki.set_lang("ru")
 calls = {}  # User statistics
 current_shown_dates = {}  # Selected dates
 
-IS_HEROKU = os.environ.get('HEROKU', False)
+IS_HEROKU = os.environ.get('IS_HEROKU', False)
 
 
 def pares_date(date_str):
@@ -42,9 +47,9 @@ def pares_date(date_str):
 @bot.message_handler(commands=['start'])
 def frontier_handler(message):
     if message.from_user.id in ADMINS:
-        print ( 'Admin USER-GROUP detected ')
+        print('Admin USER-GROUP detected ')
         if IS_HEROKU:
-            print ( ' HEROKU Environment detected.')
+            print(' HEROKU Environment detected.')
             bot.send_message(OWN_ID, 'HEROKU INSTANCE UP!' + str(os.environ.get('REDIS_URL')))
 
     print(

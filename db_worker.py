@@ -4,9 +4,9 @@ import os
 import fsm
 
 REDIS_URL = os.environ.get('REDIS_URL')
-
+OWN_ID = os.environ.get('STAFF_ID')
 ADMINS = [
-    os.environ["STAFF_ID"]
+   int(OWN_ID)
 ]
 state_db = {}
 
