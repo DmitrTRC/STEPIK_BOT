@@ -57,7 +57,7 @@ def frontier_handler(message):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=2)
     button1 = types.KeyboardButton('Moscow')
     button2 = types.KeyboardButton('info')
-    button3 = types.KeyboardButton('wiki')
+    button3 = types.KeyboardButton('WIKI')
     button4 = types.KeyboardButton('calls')
 
     markup.add(button1, button2)
